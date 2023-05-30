@@ -1,3 +1,15 @@
+/*
+List of tests:
+1. Owner equals to deployer of the contract => DONE
+2. validTokenInstances[0] equals to address passed as argument when deployed => DONE
+4. queryToken(0) returns token passed as arg when deployed => DONE
+5. queryToken(invalid index) should revert with message Invalid index => DONE
+6. registerToken as a common user should revert with message Not owner => DONE
+7. registerToken as owner and then queryToken previously registered
+8. getBalance(0) should return balance when called from owner account
+9. transfer to account and then getBalance from account receiving the balance
+*/
+
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expect } = require("chai");
 
@@ -38,7 +50,7 @@ describe("Wallet", () => {
       expect(tokenInfoArray.name).to.equal(tokenName);
     });
 
-    it("Should revert with invalid index", async () => {
+    it("Should revert with Invalid index", async () => {
       const { walletInstance } = await loadFixture(deployWalletWithBNB);
 
       await expect(walletInstance.queryToken(1)).to.be.revertedWith("Invalid index");
@@ -46,8 +58,14 @@ describe("Wallet", () => {
   });
 
   describe("Register Token Validations", () => {
+
     it("Should revert with Not owner", async () => {
-      console.log(ethers.utils.isAddress("0x8ba1f109551bd432803012645ac136ddd64dba72"));
+      const { walletInstance, otherAccount } = await loadFixture(deployWalletWithBNB);
+      const anyAddress = "0x0000000000000000000000000000000000000000";
+
+      const walletInstanceFromOther = await ethers.getContractAt("Wallet", walletInstance.address, otherAccount);
+
+      await expect(walletInstanceFromOther.registerToken(anyAddress)).to.be.revertedWith("Not owner");
     });
   });
 });
